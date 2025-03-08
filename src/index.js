@@ -1,9 +1,8 @@
 const bodyParser = require("body-parser");
 const express = require("express");
-const dotenv = require("dotenv");
-dotenv.config();
+const { PORT } = require("./config/serverConfig");
 
-const PORT = process.env.PORT;
+const { sendBasicEmail } = require("./services/email-service");
 
 const setupAndStartServer = () => {
   const app = express();
@@ -13,6 +12,14 @@ const setupAndStartServer = () => {
 
   app.listen(PORT, () => {
     console.log("Server started at port :", PORT);
+
+    // testing the setup of SMTP using nodemailer
+    sendBasicEmail(
+      "<sender-email>",
+      "<reciever-email>",
+      "This is a testing mail",
+      "Go to your mail and confirm whether you got the email or not"
+    );
   });
 };
 
