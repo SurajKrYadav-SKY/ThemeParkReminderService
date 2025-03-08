@@ -1,7 +1,8 @@
 const bodyParser = require("body-parser");
 const express = require("express");
 const { PORT } = require("./config/serverConfig");
-// var cron = require("node-cron");
+const jobs = require("./utils/job");
+const apiRoutes = require("./routes/index");
 
 // const { sendBasicEmail } = require("./services/email-service");
 
@@ -11,8 +12,12 @@ const setupAndStartServer = () => {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
+  app.use("/api", apiRoutes);
+
   app.listen(PORT, () => {
     console.log("Server started at port :", PORT);
+
+    // jobs();
 
     // testing the setup of SMTP using nodemailer
     // sendBasicEmail(
@@ -21,10 +26,6 @@ const setupAndStartServer = () => {
     //   "This is a testing mail",
     //   "Go to your mail and confirm whether you got the email or not"
     // );
-
-    // cron.schedule("* * * * *", () => {
-    //   console.log("running a task every minute");
-    // });
   });
 };
 
