@@ -40,7 +40,6 @@ module.exports = {
       },
       sentAt: {
         type: Sequelize.DATE,
-        allowNull: false,
       },
       createdAt: {
         allowNull: false,

@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       notificationTime: { type: DataTypes.DATE, allowNull: false },
       booking_id: { type: DataTypes.INTEGER, allowNull: false },
-      sentAt: { type: DataTypes.DATE, allowNull: false },
+      sentAt: { type: DataTypes.DATE },
     },
     {
       sequelize,

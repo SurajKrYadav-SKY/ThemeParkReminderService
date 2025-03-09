@@ -7,7 +7,7 @@ class EmailService {
   }
   async sendBasicEmail(mailFrom, mailTo, mailSubject, mailBody) {
     try {
-      const response = await sender.sendMail({
+      await sender.sendMail({
         from: mailFrom,
         to: mailTo,
         subject: mailSubject,
@@ -16,12 +16,16 @@ class EmailService {
       // console.log(response);
     } catch (error) {
       console.log(error);
+      throw error;
     }
   }
 
   async fetchPendingEmails(timestamp) {
     try {
-      const response = await this.notificationRepository.getAll();
+      const response = await this.notificationRepository.getNotification({
+        status: "pending",
+        type: "confirmation",
+      });
       return response;
     } catch (error) {
       console.log("Something went wrong in the service layer", error);
@@ -33,6 +37,16 @@ class EmailService {
     try {
       const notification = await this.notificationRepository.create(data);
       return notification;
+    } catch (error) {
+      console.log("Something went wrong in the service layer", error);
+      throw error;
+    }
+  }
+
+  async updateNotification(id, data) {
+    try {
+      const response = await this.notificationRepository.update(id, data);
+      return response;
     } catch (error) {
       console.log("Something went wrong in the service layer", error);
       throw error;
