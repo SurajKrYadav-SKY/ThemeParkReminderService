@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const sender = require("../config/emailConfig");
 const NotificationRepository = require("../repository/notification-repository");
 
@@ -20,11 +21,12 @@ class EmailService {
     }
   }
 
-  async fetchPendingEmails(timestamp) {
+  async fetchPendingEmails(timestamp, notificationType) {
     try {
       const response = await this.notificationRepository.getNotification({
         status: "pending",
-        type: "confirmation",
+        type: notificationType,
+        notificationTime: { [Op.lte]: timestamp },
       });
       return response;
     } catch (error) {
@@ -50,6 +52,26 @@ class EmailService {
     } catch (error) {
       console.log("Something went wrong in the service layer", error);
       throw error;
+    }
+  }
+
+  async subscribeEvents(payload) {
+    let { service, data } = payload;
+    switch (service) {
+      case "CREATE_NOTIFICATION":
+        await this.createNotification(data);
+        break;
+      case "SEND_BASIC_MAIL":
+        await this.sendBasicEmail(
+          data.mailFrom,
+          data.mailTo,
+          data.mailSubject,
+          data.mailBody
+        );
+        break;
+      default:
+        console.log("No valid event recieved.", service);
+        break;
     }
   }
 }

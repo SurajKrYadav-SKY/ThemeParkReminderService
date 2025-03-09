@@ -10,30 +10,58 @@ const emailService = new EmailService();
  */
 
 const setupJobs = () => {
+  // cron-job for confirmation
   cron.schedule("*/2 * * * *", async () => {
-    const response = await emailService.fetchPendingEmails();
-    console.log(response);
-    if (response.length !== 0) {
-      response.forEach((email) => {
-        sender.sendMail(
-          {
-            from: "reminder@noti.com",
-            to: email.recipientEmail,
-            subject: email.subject,
-            text: email.content,
-          },
-          async (error, data) => {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log(data);
-              await emailService.updateNotification(email.id, {
-                status: "sent",
-              });
-            }
-          }
+    console.log("Checking for pending confirmation");
+    const pendingConfirmations = await emailService.fetchPendingEmails(
+      new Date(),
+      "confirmation"
+    );
+    console.log(pendingConfirmations);
+    if (pendingConfirmations.length !== 0) {
+      for (const email of pendingConfirmations) {
+        try {
+          await emailService.sendBasicEmail(
+            "reminder@noti.com",
+            email.recipientEmail,
+            email.subject,
+            email.content
+          );
+          await emailService.updateNotification(email.id, {
+            status: "sent",
+            sentAt: new Date(),
+          });
+        } catch (error) {
+          console.error(`Failed to send confirmation to ${email.id}:`, error);
+          await emailService.updateNotification(email.id, { status: "failed" });
+        }
+      }
+    }
+  });
+
+  // Reminder emails at 6:00 AM daily
+  cron.schedule("0 6 * * *", async () => {
+    console.log("Checking pending reminders...");
+    const pendingReminders = await emailService.fetchPendingEmails(
+      new Date(),
+      "reminder"
+    );
+    for (const email of pendingReminders) {
+      try {
+        await emailService.sendBasicEmail(
+          "reminder@noti.com",
+          email.recipientEmail,
+          email.subject,
+          email.content
         );
-      });
+        await emailService.updateNotification(email.id, {
+          status: "sent",
+          sentAt: new Date(),
+        });
+      } catch (error) {
+        console.error(`Failed to send reminder to ${email.id}:`, error);
+        await emailService.updateNotification(email.id, { status: "failed" });
+      }
     }
   });
 };
